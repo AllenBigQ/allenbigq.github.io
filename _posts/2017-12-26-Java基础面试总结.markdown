@@ -1,0 +1,185 @@
+---
+layout: post
+title:  "Java基础-面试总结"
+date:   2017-12-26 22:00:00 +0000
+categories: jekyll update
+---
+
+
+### 1.基本数据类型
+
+#### 原始类型和包装类型
+基本数据类型分为原始类型和包装类型，虽然java是面向对象编程得预言，但是为了编程的方便还是引入了原始类型，但是为了能够将这些基本数据类型当成对象操作，Java为每一个基本数据类型都引入了对应的包装类型(wrapper class)，比如int的包装类型就是Integer，原始类型生成时只是一个变量，而包装类型生成的是一个实例，从Java5开始引入了自动装箱/自动拆箱机制，使得二者可以相互自动转换。
+
+
+8种原始类型  | 容量 | 对应包装类型
+:---:|:---:|:---:
+byte(字节) | 8位 | Byte
+short(短整型) | 16位 | Short
+int(整型) |32位|Integer
+long(长整型)|64位|Long
+float(浮点型)|32位|Float
+double(双精度)|64位|Double
+char(字符型)|16位|Character
+boolean(布尔型)|1位|Boolean
+
+#### 装箱/拆箱
+先看下面这段代码，这就是int和Integer的自动装箱
+```
+public class Test1 {
+    public static void main(String[] args) {
+        int a=1;
+        Integer b =a;
+        System.out.println(b);
+    }
+}
+```
+a是原始类型，b是包装类型，代码并没有报错是因为自动装箱机制，把a放进一个箱子里包裹起来，封装成了一个Integer包装类型对象，然后赋值给了b包装类型，其实这两行代码的执行效果是下面这样，Integer调用了valueOf(int i)方法。
+```
+Integer b=Integer.valueOf(a);//上面两行等于这一行
+```
+我们看一下Integer的valueOf(int i)的源码
+```
+public static Integer valueOf(int i) {
+    assert IntegerCache.high >= 127;
+    if (i >= IntegerCache.low && i <= IntegerCache.high)
+        return IntegerCache.cache[i + (-IntegerCache.low)];
+    return new Integer(i);
+}
+```
+valueOf(int i)并不是直接new一个包装类型然后返回，而是在之前加了一个缓存。这个缓存的low-high是-128~127，也就是说当所要自动装箱的int值在-128到127之间时，会直接调用int缓存区间中的值，所有调用值的地址都是相同的，只有不在这个区间的值才会重新new一个新对象，这就是自动装箱。
+
+跟装箱相似看一下拆箱
+```
+public class Test1 {
+    public static void main(String[] args) {
+        Integer a = new Integer(200);
+        int b=a;
+        System.out.println(b);
+    }
+}
+```
+这两行代码其实就是下面这两行代码
+```
+Integer a = new Integer(200);
+        int b=a.intValue();
+```
+拆箱就是调用了包装类中的xxxValue()方法，比如Integer拆箱int调用了自身的intValue()方法。
+
+这是int和Integer的装箱和拆箱，同样这八种类型都有自动装箱/拆箱的功能，只不过装箱时valueOf()中缓存有些差别。
+Float、Double的valueOf()是没有缓存的，每次都是返回一个新对象，而Integer、Short是有缓存的。
+
+#### == 、equals()判断问题
+
+==判断的是地址是否相同，equals()判断的是存储的内容是否相同
+
+* 都是原始类型比较时
+
+```
+public static void main(String[] args) {
+        int a=1;
+        int b=1;
+        if (a==b){
+            System.out.println("a==b");
+        }else{
+            System.out.println("a!=b");
+        }
+    }
+```
+因为a和b都是原始类型，原始类型所定义的变量是可以直接用\==比较判断的，输入的结果也是a==b。
+
+* 都是包装类型比较时
+
+我们如果没有用原始类型，而是用包装类型会怎么样呢？
+```
+public static void main(String[] args) {
+        Integer a= new Integer(1);
+        Integer b= new Integer(1);
+        if (a==b){
+            System.out.println("a==b");
+        }else{
+            System.out.println("a!=b");
+        }
+    }
+```
+输出的结果肯定是a!=b，因为此时a和b是new出来的两个不同的实例对象，虽然他们的值是相同的，但用==判断的是地址，不同的实例地址肯定也是不同的。而我们用equals()判断一下：
+```
+public static void main(String[] args) {
+        Integer a= new Integer(1);
+        Integer b= new Integer(1);
+        if (a==b){
+            System.out.println("a==b");
+        }else if (a.equals(b)){
+            System.out.println("a.equals(b)");
+        }else {
+            System.out.println("a!=b");
+        }
+    }`
+```
+输出的结果是a.equals(b),因为equals判断的是值(也就是其中的内容)是否相等。
+
+下面我们看这样的代码：
+```
+public static void main(String[] args) {
+        Integer a=1;
+        Integer b=1;
+        if (a==b){
+            System.out.println("a==b");
+        }else {
+            System.out.println("a!=b");
+        }
+    }
+```
+这个代码与上面的区别是直接定义了包装类型a和b都等于1，当两个包装类型用\==比较时，先进行拆箱，变成原始类型，原始类型可以用==比较 所以输出的结果是a\==b。
+```
+ public static void main(String[] args) {
+        Integer a=300;
+        Integer b=300;
+        if (a==b){
+            System.out.println("a==b");
+        }else {
+            System.out.println("a!=b");
+        }
+    }
+//输出结果是a!=b
+```
+但是当我们赋值为300后进行比较输出的结果是a!=b，这是为什么呢？
+因为在前面装箱时讲过，Integer a=300 等于 Integer a = Integer.valueOf(300)，而此时就用到了缓存，缓存区间为-128~127，所以当为1时，指向的都是1的缓存地址，\==比较时就是相等，而300超出了缓存区间，所以执行了valueOf()源码中的new Integer(i)。所以Integer a=300 也就等价于 Integer a = new Integer(300)，也就是新创建了一个实例对象，所以==比较时，地址是不同的。
+
+
+* 原始类型和包装类型比较时
+
+当原始类型和包装类型比较时，包装类型会拆箱成原始类型，而刚才讲到原始类型可以直接用==判断
+```
+ public static void main(String[] args) {
+        int a=1;
+        Integer b= new Integer(1);
+        if (a==b){ //包装类型拆箱后进行==比较
+            System.out.println("a==b");
+        }else {
+            System.out.println( "a!=b");
+        }
+    }
+```
+
+#### 基本类型之间的转换
+
+byte<——short、char <—— int <——long <——float <——double
+
+容量小的向容量大的类型转换时是不需要强制转换的，比如int向double转换，就像你有10G的资料要存到20G的空间里很容易，但是要将21G的资料放进20G的空间里，可能就需要删点东西了，也就是强制转换，会丢失精度。
+```
+float f =2.2f;
+int ff = (int)f;
+//输出结果为2，没有四舍五入
+```
+short、char之间是不会相互转换的，byte、short、char三者在计算时首先会转换为int类型，实数常量(有小数点)默认为double类型，整数常量默认为int类型。
+
+举两个例子:
+
+0.6332的数据类型是什么呢?<br>
+答案：double.<br>
+因为实数常量默认为double类型。
+
+float f=3.4;是否正确?<br>
+答案：不正确。<br>
+定义float正确形式是 float f=3.4f。而题中float f=3.4，3.4默认是double类型，f是float类型，此时doulbe类型赋值给float类型，大变小，需要强制转换，正确写法是float f=(float)3.4;
