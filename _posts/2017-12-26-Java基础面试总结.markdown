@@ -174,12 +174,77 @@ int ff = (int)f;
 ```
 short、char之间是不会相互转换的，byte、short、char三者在计算时首先会转换为int类型，实数常量(有小数点)默认为double类型，整数常量默认为int类型。
 
-举两个例子:
+列出几个面试题参考一下:
 
-0.6332的数据类型是什么呢?<br>
+**0.6332的数据类型是什么呢?**<br>
 答案：double.<br>
 因为实数常量默认为double类型。
 
-float f=3.4;是否正确?<br>
+**float f=3.4;是否正确?**<br>
 答案：不正确。<br>
 定义float正确形式是 float f=3.4f。而题中float f=3.4，3.4默认是double类型，f是float类型，此时doulbe类型赋值给float类型，大变小，需要强制转换，正确写法是float f=(float)3.4;
+
+**下面程序中，l的最终值是多少**<br>
+long l=(int)3.9;<br>
+l%=2;<br>
+答案：1 。3.9默认是double类型，强制转换为int类型等于3，赋值给long类型不需要强制转换，所以l=3，和2取余等于1。
+*= 、/= 、+= 、-=、%=*
+
+**short s1=1;s1=s1+1;有什么错?<br>
+short s1=1;s1+=1;有什么错?**<br>
+答案：s1=s1+1;这条语句是错误的，s1是short类型，short类型和int类型相加，小变大，最终为int类型，而int类型再赋值给short类型，大变小，就需要强制转换了，所以正确的写法是s1=(short)(s1+1);，而s1+=1;并没有报错，是因为加赋值是在s1基础上直接+1；而不是加1后再赋值。
+
+**写出运行结果**
+```
+class Test{
+    public static void main(String[] args){
+        Integer a = new Integer(3);
+        Integer b = 3;
+        int c=3;
+        System.out.println(a==b); //false
+        System.out.println(a==c); //true
+    }
+}
+```
+答案：a是new出来的新对象，从堆里拿出来的，而b是从缓冲区拿出来的，因为之前讲过缓冲范围在-128~127.
+
+
+### 2.String、StringBuilder、StringBuffer
+**String**<br>
+
+String被final修饰，所以是不可变类。每当我们去更改String变量的值的时候(包括重新 赋值或者使用String内部的一些方法)，其实是重新创建了一个String对象(new)来保存新的值，然后让变量指向新创建的对象，所以当我们需要频繁改变字符串的时候，使用String会带来较大的开销。
+
+**定义String的方法有两种:**<br>
+(1)String str="abc";<br>
+(2)String str=new String("abc");
+
+这两种方法其实有很大的区别，首先，第一种方式创建的String对象"abc"是存放在字符串常量池中，创建的过程是，首先在字符串常量池中查找是否存在"abc"，如果存在就将str指向它(和Integer的缓存相似)，如果不存在则在字符串常量池中创建一个"abc"，然后再将str指向它，当有另外一个String变量被赋值时，不会再重新创建，直接将字符串常量池中的地址给它。
+```
+String a="abc";
+String b="abc";
+System.out.println(a==b);  //输出true
+```
+上面的代码过程是：定义一个String类型的变量a，查找字符串常量池中是否存在"abc"，发现不存在则创建一个"abc"，并将a指向"abc"，再定义一个String类型的变量b，发现字符串常量池中存在"abc"，则直接将b指向"abc"的地址，所以==比较的时候输出true，因为这两个字符串变量a、b指向的"abc"是同一个，地址相同。
+
+也就是说通过第一种方法创建的字符串在字符串常量池中，是可以共享的，同时也是不可以变的，那么什么是不可以变的呢？
+```
+String a="abc";
+a=a+"def";
+```
+此时a指向"abc"，a+"def"后发现字符串常量池中没有则要重新创建一个并将a指向新创建的"abcdef"，但此时常量池中的"abc"并不会撤销。看似撤销其实是新创建，原来的还存在。
+
+第二种创建方式其实分为两步：
+```
+String s="abc";
+String str = new String(s);
+```
+第一步就是上面的第一种创建方式，第二步是在堆内存中new一个String对象，将定义的String类型的变量str指向这个对象的地址，这个对象的内容则需要到字符串常量池中找到"abc"，如果没有则要创建"abc"。所以相当于此时存在两份"abc"，一份在常量池中，一份被堆内存的String对象私有化管理，所以使用String str = new String("abc")等于创建了两个对象。
+
+常见笔试题:<br>
+**new String("abc")创建了几个对象？**<br>
+答案：一个或两个。如果常量池中原来存在"abc"，那么只需要创建一个对象，如果常量池中原来没有字符串"abc"，那么就会创建两个对象。
+
+#### StringBuffer(JDK1.0)、StringBuilder(JDK1.5)
+String是不可变类，适合在需要被共享的场合中使用，而当一个字符串经常需要被修改时，同时生成很多无用的对象，由于这些无用的对象会被垃圾回收机制来回收，因此会影响程序的性能，为了解决这个问题，可以使用StringBuffer对象或者StringBuilder对象。这两个对象每次改变还是在原来的对象上发生，不会重新new出新的StringBuffer或StringBuilder对象来，所以当频繁修改字符串时使用这两个对象是很好的选择。
+
+StringBuffer和StringBuilder的最主要区别就是线程安全方面，由于StringBuffer在大部分的方法上都添加了synchronized，所以StringBuffer是线程安全的，而StringBuilder不是线程安全的，因此当处于多线程环境下是，需要使用StringBuffer，如果我们的程序是线程安全的使用StringBuilder在性能上会更优一点。
