@@ -248,3 +248,187 @@ String str = new String(s);
 String是不可变类，适合在需要被共享的场合中使用，而当一个字符串经常需要被修改时，同时生成很多无用的对象，由于这些无用的对象会被垃圾回收机制来回收，因此会影响程序的性能，为了解决这个问题，可以使用StringBuffer对象或者StringBuilder对象。这两个对象每次改变还是在原来的对象上发生，不会重新new出新的StringBuffer或StringBuilder对象来，所以当频繁修改字符串时使用这两个对象是很好的选择。
 
 StringBuffer和StringBuilder的最主要区别就是线程安全方面，由于StringBuffer在大部分的方法上都添加了synchronized，所以StringBuffer是线程安全的，而StringBuilder不是线程安全的，因此当处于多线程环境下是，需要使用StringBuffer，如果我们的程序是线程安全的使用StringBuilder在性能上会更优一点。
+
+### 3.关键字
+
+**switch**
+
+switch的参数类型在jdk1.7之前只能支持byte、short、char、int或者其对应的包装类以及Enum类型，在jdk1.7之后也支持了String类型。
+```
+ String str="abc";
+        switch (str){
+            case "abc":
+                System.out.println("abc");
+                break;
+            case "def":
+                System.out.println("def");
+                break;
+        }
+```
+
+**枚举类型**
+```
+public class Test1 {
+    enum ColorEnum{
+        RED,
+        GREEN,
+        BLUE
+    }
+    public static void main(String[] args) {
+        ColorEnum color=ColorEnum.BLUE;
+        switch (color){
+            case RED:
+                System.out.println("RED");
+                break;
+            case GREEN:
+                System.out.println("GREEN");
+                break;
+            case BLUE:
+                System.out.println("BLUE");
+                break;
+        }
+    }
+}
+```
+
+**break、continue、goto**
+
+break的作用是跳出当前循环快(for、while、do while)或者程序块(switch)，在循环块中的作用是跳出当前正在循环的循环体，在程序块中的作用是中断和下一个case条件的比较。
+
+continue用于结束循环体中其后语句的执行，并跳回循环程序块的开头，执行下一次循环，而不是离开循环体。
+
+goto是java中的保留字，几乎很少使用
+
+
+**break、continue、标签**
+
+所谓标签就是后面跟一个冒号的标识符例如<BR>
+good:
+
+在java中标签一般用在循环语句之前，和break、continue一起使用产生效果。
+```
+good:
+外部循坏{
+    内部循环{
+        //...
+        break;
+        //...
+        continue;
+        //...
+        continue good;
+        //...
+        break good;
+    }
+}
+```
+break中断了内部循环，并开始外部的下一次循环<br>
+continue不执行下面的语句，结束了本次内部循环，并开始内部的下一次循环<br>
+continue good 不执行下面的语句，结束内部循环，并开始外部的下一次循环<br>
+break good 结束内部循环和外部循环，不会重新进入循环。<br>
+
+**看一个面试题**
+```
+public static void main(String[] args) {
+        int i = 0;
+        outer:
+        for (; true; ) {
+            inner:
+            for (; i < 10; i++) {
+                System.out.println("i = " + i);
+                if (i==2){
+                    System.out.println("continue");
+                    continue ;
+                }
+                if (i==3){
+                    System.out.println("break");
+                    i++;
+                    break ;
+                }
+                if (i==7){
+                    System.out.println("continue outer");
+                    i++;
+                    continue outer;
+                }
+                if (i==8){
+                    System.out.println("break outer");
+                    break outer;
+                }
+                for (int k=0;k<5;k++){
+                    if (k==3){
+                        System.out.println("continue inner");
+                        continue inner;
+                    }
+                }
+            }
+        }
+    }
+```
+
+### 4.值传递和引用传递
+
+首先要强调的是java中没有指针的概念，并且java中只存在值传递！然而我们经常看到对于对象(数组、类、接口)的传递似乎有点像引用传递，可以改变对象中某个属性的值，但这是一个假象，实际上这个传入函数的值是对象引用的拷贝，即传递的是引用的地址值，所以还是按值传递。
+需要注意的是当传递的是数组名或对象实例时，其实传递的都是地址拷贝
+```
+public class Test {
+    public static void change(int a){
+        a=50;
+    }
+    public static void main(String[] args) {
+        int a=10;
+        System.out.println(a);
+        change(a);
+        System.out.println(a);
+    }
+}
+//输出的是10 10
+```
+
+```
+public class Test {
+    public static void change(int []a){
+        a[0]=50;
+    }
+    public static void main(String[] args) {
+        int [] a={10,20};
+        System.out.println(a[0]);
+        change(a);
+        System.out.println(a[0]);
+    }
+}
+//输出的是10 50
+```
+
+看这个面试题，输出结果
+```
+public class Test1 {
+    String str = new String("good");
+    char[] ch = {'a', 'b', 'c'};
+
+    public static void main(String[] args) {
+        Test1 ts = new Test1();
+        ts.change(ts.str,ts.ch);
+        System.out.print(ts.str +" and ");
+        System.out.println(ts.ch);
+    }
+    public void change(String str,char ch[]){
+        str="test ok";
+        ch[0]='g';
+    }
+}
+
+```
+输出的答案是 good and gbc
+
+### 5.数组
+
+**声明数组的两种方式：**
+
+int a[];
+int []a;
+
+通过定义，我们得到了一个数组的引用，这是为这个引用分配了存储空间，但是还没有给数组对象本身分配任何空间，想要给数组对象分配存储空间，必须使用初始化表达式。
+
+**初始化数组的方式：**
+int a[]=new int[4];
+int a[]={0,1,2,3};
+int a[]=new int[]{0,1,2,3};
