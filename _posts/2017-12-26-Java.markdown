@@ -433,7 +433,171 @@ int a[]=new int[4];<br>
 int a[]={0,1,2,3};<br>
 int a[]=new int[]{0,1,2,3};
 
+**默认初始化**
 
+如果我们利用int a[]=new int [8],为数组元素分配了空间，但是没有初始化，JAVA会为他们分配默认值。
+
+基本类型|默认值
+--|--
+boolean|false
+char|null
+byte|(byte)0
+short|(byte)0
+int|0
+long|0L
+float|0.0f
+double|0.0d
+
+**下面哪些语句能够正确地生成5个空字符串？**
+
+A.String a[]=new String[5];for(int i=0;i<5;a[i++]="");<br>
+B.String a[]={"","","","",""};<br>
+C.String a[5];<br>
+D.String[5]a;<br>
+E.String []a=new String[5];<br>
+for(int i=0;i<5;a[i++]=null);
+
+答案：A B。空字符串不是null
+
+**下面哪个语句正确地声明一个整型的二维数组？**
+
+A.int a[][]=new int[][];<br>
+B.int a[10][10]=new int[][];<br>
+C.int a[][]=new int[10][10];<br>
+D.int [][]a=new int[10][10];<br>
+E.int []a[]=new int[10][10];<br>
+
+答案：C D E
+
+**哪个语句创建了一个数组实例？**
+
+A.int[] a=new int[15];<br>
+B.float a=new float[20];<br>
+C.char[] a="abc";<br>
+D.int a[][]={4,5,6}{1,2,3};<br>
+
+答案：A 。声明char类型数组 char[] a ={'a','b','c'},二维数组是两层大括号覆盖，int a[][]={{4,5,6},{1,2,3}};
+
+**数组有没有length()这个方法，String有没有length()这个方法？**
+
+答案：数组没有length()这个方法，但有length属性，String有。
+
+**请问下面程序在初始化后，a[0]和b[0]的值是多少？**
+
+String []a=new String[10];
+int []b=new int[10];
+
+答案：String是类，而类的默认值都是null，int默认值为0
+
+
+### 6.构造函数相关
+
+**如果一个类中没有写任何的构造方法，JVM会生成一个默认的无参构造函数。**
+
+
+**如果一个基类中写了有参构造函数，没有定义无参构造函数，基类是不会默认生成无参构造函数的。而且子类的构造函数中如果没有显示的通过super调用基类的构造函数，那么默认是调用父类的无参构造函数(即默认为super())。**
+
+**下面哪三个描述是正确的？**
+
+A.默认构造器初始化方法变量<br>
+B.默认构造器有和它所在类相同的访问修饰词<br>
+C.默认构造器调用其父类的无参构造函数<br>
+D.如果一个类没有无参构造其，编译器会让它创建一个默认构造器<br>
+E.只有当一个类没有任何构造器时，编译器会为它创建一个默认构造器.
+
+答案：A B D
+
+**以下子类B的情形哪一个时可以通过编译的：**
+
+```
+public class A{
+    public A(String s){}
+}
+
+public class B extends A{
+    String name="abc";
+} //×
+
+public class B extend A{
+    String name="abc";
+    public B(String s){}
+} //×
+
+public class B extend A{
+    String name ="abc";
+    public B(String s){
+     super(s);   
+    }
+} //√
+
+```
+在子类的构造方法中，只要里面没有显式的通过super去调用父类相应的构造方法，默认都是调用super()，即无参构造方法，因此要确保父类有相应的构造方法。
+
+
+**Java创建对象的几种方式：**
+
+①用new语句创建对象
+
+②运用反射，调用java.lang.Class或者java.langreflect.Constructor类的newInstance()实例方法
+
+③调用对象的clone()方法
+
+④运用反序列化，调用java.io.ObjectInputStream对象的readObject()方法
+
+①和②都会明确的显式的调用构造函数；③是在内存上对已经存在的对象的克隆，所以不会调用构造函数；④是从文件中还原类的对象，也不会调用构造函数。
+
+**不通过构造函数也能创建对象吗**
+
+答案：是
+
+**正确的有()**
+
+A.class中的constructor不可省略
+B.constructor必须与class同名，但方法不能与clsaa同名
+C.constructor在一个对象被new时执行
+D.一个class只能定义一个constructor
+
+答案：C 方法和类可以同名。
+
+**构造函数调用顺序**
+
+在Java中，子类的构造过程中必须调用其父类的构造函数，是因为有集成关系存在时，子类需要把父类的内容继承下来，但是如果父类有多个构造函数时，该如何选择调用呢？
+
+**第一个规则：子类的构造过程中，必须调用其父类的构造方法**。一个类，如果我们不写构造方法，那么编译器会帮我们加上一个默认的构造方法(就是没有参数的构造方法)，但是如果你自己写了构造方法，那么编译器就不会给你添加了，所以有时候当你new一个子类对象的时候，肯定调用了子类的构造方法，但是如果在子类构造方法中我们并没有显式的调用父类的构造方法，就会默认调用父类没有参数的构造方法。
+
+**第二个规则：如果子类的构造方法中既没有显示的调用基类构造方法，而基类中又没有无参的构造方法，则编译出错，所以，通常我们需要显式的：super(参数列表)，来调用父类由此参数的构造函数，此时无参的构造函数就不会调用**
+
+**总结：子类没有显式的调用父类构造函数，不管子类构造函数是否带参数都默认调用父类的无参构造函数，若父类没有则编译出错**
+
+**下面是People和Child类的定义和构造方法，每个构造方法都输出编号，在执行new Child("abc")的时候都有哪些构造方法被顺序调用？**
+
+```
+class People{
+    String name;
+    public people(){
+        System.out.print(1);
+    }
+    public People(String name){
+        System.out.print(2);
+        this.name =name;
+    }
+}
+
+class Child extends People{
+    People father;
+    public Child(){
+        System.out.print(3);
+    }
+    public child(String name){
+        //
+        System.out.print(4);
+        this.name=name;
+        father=new People(name+"good");
+    }
+    
+}
+//输出顺序142
+```
 
 
 
