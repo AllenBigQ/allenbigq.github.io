@@ -474,7 +474,7 @@ E.int []a[]=new int[10][10];<br>
 A.int[] a=new int[15];<br>
 B.float a=new float[20];<br>
 C.char[] a="abc";<br>
-D.int a[][]={4,5,6}{1,2,3};
+D.int a[][]={4,5,6}{1,2,3};<br>
 
 答案：A 。声明char类型数组 char[] a ={'a','b','c'},二维数组是两层大括号覆盖，int a[][]={{4,5,6},{1,2,3}};
 
