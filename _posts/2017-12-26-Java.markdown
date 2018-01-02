@@ -476,7 +476,8 @@ B.float a=new float[20];<br>
 C.char[] a="abc";<br>
 D.int a[][]={4,5,6}{1,2,3};<br>
 
-答案：A 。声明char类型数组 char[] a ={'a','b','c'},二维数组是两层大括号覆盖，int a[][]={{4,5,6},{1,2,3}};
+答案：A 。声明char类型数组 char[] a ={'a','b','c'},二维数组是两层大括号覆盖
+
 
 **数组有没有length()这个方法，String有没有length()这个方法？**
 
