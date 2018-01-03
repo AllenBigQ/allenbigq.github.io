@@ -599,6 +599,89 @@ class Child extends People{
 }
 //输出顺序142
 ```
+**静态代码块的执行顺序**
+
+执行顺序：1.静态代码块->2.普通代码块->3.构造方法
+
+1是类级别，2、3是实例级别，所以在父子类关系中，执行顺序为：<br>
+父类静态代码块->子类静态代码块->父类普通代码块->父类构造方法->子类代码块->子类构造方法;
+
+先经过类级别->再经过父类所有实例级别->最后经过子类所有实例级别
+
+**下面代码的输出顺序是什么?**
+```
+public class HelloB extends HelloA{
+    public HelloB(){
+        System.out.println("HelloB的构造方法");
+    }
+    {
+        System.out.println("HelloB的普通代码块");
+    }
+    static{
+        System.out.println("HelloB的静态代码块");
+    }
+    public static void main(String[] args){
+        new HelloB();
+    }
+}
+
+class HelloA{
+    public HelloA(){
+        System.out.println("HelloA的构造方法");
+    }
+    {
+        System.out.println("HelloA的普通代码块");
+    }
+    static{
+        System.out.println("HelloA的静态代码块");
+    }
+}
+```
+答案：<br>
+HelloA的静态代码块<br>
+HelloB的静态代码块<br>
+HelloA的普通代码块<br>
+HelloA的构造方法<br>
+HelloB的普通代码块<br>
+HelloB的构造方法
+
+### 7.面向对象相关
+
+Java面向对象的基本思想之一就是封装细节并且公开接口，java语言采用访问控制修饰符来控制类以及类的方法和变量的访问权限，从而向使用者暴露接口，但隐藏实现细节，访问控制分为四种级别：
+
+①public：用public修饰的类、类的变量及方法，包内及包外的任何类(包括子类和普通类)都可以访问；
+
+②protected：用protected修饰的类、类的变量及方法，包内的任何类及包外哪些继承了该类的子类才能访问，protected重点突出继承；
+
+③default：如果一个类、类的变量及方法没有用任何修饰符(public protected privaate中的任何一种修饰)，则其访问权限为default(默认访问权限)。默认访问权限的类、类的变量及方法，包内的任何类(包括继承了此类的子类)都可以访问，而对于包外的任何类都不能访问它(包括包外继承了此类的子类)，default重点突出包；
+
+④private：用private修饰的类、类的变量及方法，只有本类可以访问，而包内包外的任何类都不可以访问。
+
+修饰符|当前类|同一个包|子类|其他包
+:--:|:--:|:--:|:--:|:--:
+public|√|√|√|√
+protected|√|√|√|×
+default|√|√|×|×
+private|√|×|×|×
+
+**final修饰的类不能被继承，也没有子类。**
+
+**abstract修饰的类不能被实例化，必须被子类继承。类只要有一个抽象方法就必定是抽象类，但抽象类不一定要有抽象方法。**
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
