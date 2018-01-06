@@ -34,7 +34,7 @@ private static final long serialVersionUID = 8683452581122892189L;
 ```
 创建一个数组elementData用来存储ArrayList的元素
 
-关键字：transient。在采用Java默认的序列化机制的时候，被该关键字修饰的属性不会被序列化。ArrayList采用默认序列化，因为它自己实现了序列化和反序列的方法。wreteObject(ObjectOutputStream)和readObject(ObjectInputStream)
+关键字：transient。在采用Java默认的序列化机制的时候，被该关键字修饰的属性不会被序列化。ArrayList不采用默认序列化，因为它自己实现了序列化和反序列的方法。wreteObject(ObjectOutputStream)和readObject(ObjectInputStream)
 
 ```
     private transient Object[] elementData;
@@ -226,3 +226,347 @@ private void grow(int minCapacity) {
             MAX_ARRAY_SIZE;
     }
 ```
+**add(int index, E element)**
+```
+public void add(int index, E element) {
+        rangeCheckForAdd(index);
+
+        ensureCapacityInternal(size + 1);  // Increments modCount!!
+        System.arraycopy(elementData, index, elementData, index + 1,
+                         size - index);
+        elementData[index] = element;
+        size++;
+    }
+```
+
+
+**size()**
+
+返回ArrayList实际大小
+```
+public int size() {
+        return size;
+    }
+```
+
+**isEmpty()**
+判断当前ArrayList是否为空
+```
+public boolean isEmpty() {
+        return size == 0;
+    }
+```
+**contains(Object o)和indexOf(Object o)**
+
+contains(Object o) 判断ArrayList是否包含Object o
+indexOf(Object o) 正向查找，返回元素的索引值，没有则返回-1
+```
+public boolean contains(Object o) {
+        return indexOf(o) >= 0;
+    }
+    
+public int indexOf(Object o) {
+        if (o == null) {
+            for (int i = 0; i < size; i++)
+                if (elementData[i]==null)
+                    return i;
+        } else {
+            for (int i = 0; i < size; i++)
+                if (o.equals(elementData[i]))
+                    return i;
+        }
+        return -1;
+    }
+```
+**lastIndexOf(Object o)**
+
+反向查找(从数组末尾向开始查找)，返回元素的索引值
+```
+public int lastIndexOf(Object o) {
+        if (o == null) {
+            for (int i = size-1; i >= 0; i--)
+                if (elementData[i]==null)
+                    return i;
+        } else {
+            for (int i = size-1; i >= 0; i--)
+                if (o.equals(elementData[i]))
+                    return i;
+        }
+        return -1;
+    }
+```
+**clone()**
+
+克隆函数
+```
+public Object clone() {
+        try {
+            @SuppressWarnings("unchecked")
+                ArrayList<E> v = (ArrayList<E>) super.clone();
+            // 将当前ArrayList的全部元素拷贝到v中
+            v.elementData = Arrays.copyOf(elementData, size);
+            v.modCount = 0;
+            return v;
+        } catch (CloneNotSupportedException e) {
+            // this shouldn't happen, since we are Cloneable
+            throw new InternalError();
+        }
+    }
+```
+**toArray()**
+
+返回ArrayList的Object数组
+
+```
+public Object[] toArray() {
+        return Arrays.copyOf(elementData, size);
+    }
+```
+
+**toArray(T[] a)**
+
+调用 toArray() 函数会抛出“java.lang.ClassCastException”异常，但是调用 toArray(T[] contents) 能正常返回 T[]。
+
+toArray() 会抛出异常是因为 toArray() 返回的是 Object[] 数组，将 Object[] 转换为其它类型(如如，将Object[]转换为的Integer[])则会抛出“java.lang.ClassCastException”异常，因为Java不支持向下转型。
+解决该问题的办法是调用 <T> T[] toArray(T[] contents) ， 而不是 Object[] toArray()。
+
+
+```
+public <T> T[] toArray(T[] a) {
+        // 若数组a的大小 < ArrayList的元素个数；
+        // 则新建一个T[]数组，数组大小是“ArrayList的元素个数”，并将“ArrayList”全部拷贝到新数组中
+        if (a.length < size)
+            return (T[]) Arrays.copyOf(elementData, size, a.getClass());
+        // 若数组a的大小 >= ArrayList的元素个数；
+        // 则将ArrayList的全部元素都拷贝到数组a中。
+        System.arraycopy(elementData, 0, a, 0, size);
+        if (a.length > size)
+            a[size] = null;
+        return a;
+    }
+//使用方法：
+public static Integer[] vectorToArray2(ArrayList<Integer> v) {
+    Integer[] newText = (Integer[])v.toArray(new Integer[0]);
+    return newText;
+}
+```
+
+**get(int index)和elementData(int index)**
+
+获取index位置的元素
+```
+public E get(int index) {
+        rangeCheck(index);
+
+        return elementData(index);
+    }
+
+E elementData(int index) {
+        return (E) elementData[index];
+    }
+
+private void rangeCheck(int index) {
+    //如果index大于ArrayList的实际大小则抛出异常    
+    if (index >= size)
+            throw new IndexOutOfBoundsException(outOfBoundsMsg(index));
+    }
+```
+**set(int index, E element)**
+
+设置index位置的值为element
+
+```
+public E set(int index, E element) {
+        rangeCheck(index);
+
+        E oldValue = elementData(index);
+        elementData[index] = element;
+        return oldValue;
+    }
+```
+**remove(int index)和remove(Object o)**
+
+移除index索引的元素和直接移除元素
+
+```
+public E remove(int index) {
+        rangeCheck(index);
+
+        modCount++;
+        E oldValue = elementData(index);
+
+        int numMoved = size - index - 1;
+        if (numMoved > 0)
+            System.arraycopy(elementData, index+1, elementData, index,
+                             numMoved);
+        elementData[--size] = null; // clear to let GC do its work
+
+        return oldValue;
+    }
+
+    
+public boolean remove(Object o) {
+        if (o == null) {
+            for (int index = 0; index < size; index++)
+                if (elementData[index] == null) {
+                    fastRemove(index);
+                    return true;
+                }
+        } else {
+            // 遍历ArrayList，找到“元素o”，则删除，并返回true。
+            for (int index = 0; index < size; index++)
+                if (o.equals(elementData[index])) {
+                    fastRemove(index);
+                    return true;
+                }
+        }
+        return false;
+}
+//快速删除
+private void fastRemove(int index) {
+        modCount++;
+        int numMoved = size - index - 1;
+        if (numMoved > 0)
+            System.arraycopy(elementData, index+1, elementData, index,
+                             numMoved);
+        elementData[--size] = null; // clear to let GC do its work
+    }
+```
+**clear()**
+
+清空ArrayList
+
+```
+public void clear() {
+        modCount++;
+
+        // clear to let GC do its work
+        for (int i = 0; i < size; i++)
+            elementData[i] = null;
+
+        size = 0;
+    }
+```
+**addAll(Collection<? extends E> c)和addAll(int index, Collection<? extends E> c)**
+
+将集合c追加到ArrayList中/从index位置开始，将集合c添加到ArrayList
+```
+public boolean addAll(Collection<? extends E> c) {
+        Object[] a = c.toArray();
+        int numNew = a.length;
+        ensureCapacityInternal(size + numNew);  // Increments modCount
+        System.arraycopy(a, 0, elementData, size, numNew);
+        size += numNew;
+        return numNew != 0;
+    }
+
+public boolean addAll(int index, Collection<? extends E> c) {
+        rangeCheckForAdd(index);
+
+        Object[] a = c.toArray();
+        int numNew = a.length;
+        ensureCapacityInternal(size + numNew);  // Increments modCount
+
+        int numMoved = size - index;
+        if (numMoved > 0)
+            System.arraycopy(elementData, index, elementData, index + numNew,
+                             numMoved);
+
+        System.arraycopy(a, 0, elementData, index, numNew);
+        size += numNew;
+        return numNew != 0;
+    }
+    
+private void rangeCheckForAdd(int index) {
+        if (index > size || index < 0)
+            throw new IndexOutOfBoundsException(outOfBoundsMsg(index));
+    }
+```
+**removeRange(int fromIndex, int toIndex)**
+
+删除fromIndex到toIndex之间的全部元素。
+
+```
+protected void removeRange(int fromIndex, int toIndex) {
+        modCount++;
+        int numMoved = size - toIndex;
+        System.arraycopy(elementData, toIndex, elementData, fromIndex,
+                         numMoved);
+
+        // clear to let GC do its work
+        int newSize = size - (toIndex-fromIndex);
+        for (int i = newSize; i < size; i++) {
+            elementData[i] = null;
+        }
+        size = newSize;
+    }
+```
+
+**removeAll(Collection<?> c)和retainAll(Collection<?> c)**
+删除在指定集合中的元素/删除不在指定集合的元素
+```
+public boolean removeAll(Collection<?> c) {
+        return batchRemove(c, false);
+    }
+public boolean retainAll(Collection<?> c) {
+        return batchRemove(c, true);
+    }
+private boolean batchRemove(Collection<?> c, boolean complement) {
+        final Object[] elementData = this.elementData;
+        int r = 0, w = 0;
+        boolean modified = false;
+        try {
+            for (; r < size; r++)
+                if (c.contains(elementData[r]) == complement)
+                    elementData[w++] = elementData[r];
+        } finally {
+            // Preserve behavioral compatibility with AbstractCollection,
+            // even if c.contains() throws.
+            if (r != size) {
+                System.arraycopy(elementData, r,
+                                 elementData, w,
+                                 size - r);
+                w += size - r;
+            }
+            if (w != size) {
+                // clear to let GC do its work
+                for (int i = w; i < size; i++)
+                    elementData[i] = null;
+                modCount += size - w;
+                size = w;
+                modified = true;
+            }
+        }
+        return modified;
+    }
+```
+
+### **ArrayList的遍历方式**
+
+**第一种，通过迭代器遍历。即通过Iterator去遍历**
+```
+Integer value = null;
+Iterator iter = list.iterator();
+while (iter.hasNext()) {
+    value = (Integer)iter.next();
+}
+```
+**第二种，随机访问，通过索引值去遍历**
+
+由于ArrayList实现了RandomAccess接口，它支持通过索引值去随机访问元素。
+```
+Integer value = null;
+int size = list.size();
+for (int i=0; i<size; i++) {
+    value = (Integer)list.get(i);        
+}
+```
+**第三种，for循环遍历**
+```
+Integer value = null;
+for (Integer integ:list) {
+    value = integ;
+}
+```
+
+**总结：遍历ArrayList时，使用随机访问(即，通过索引序号访问)效率最高，而使用迭代器的效率最低！**
